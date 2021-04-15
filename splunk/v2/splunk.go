@@ -135,7 +135,7 @@ func (c *Client) LogEvent(e *Event) error {
 // Client.CheckHealth is used to perform a healthcheck and return error if HEC endpoint is not healthy
 func (c *Client) CheckHealth() error {
 	// Convert requestBody struct to byte slice to prep for http.NewRequest
-	c.URL += "health/1.0"
+	c.URL += "/health/1.0"
 	return c.doRequest(bytes.NewBufferString(""), "GET")
 }
 
