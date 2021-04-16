@@ -129,14 +129,13 @@ func (c *Client) LogEvent(e *Event) error {
 	if err != nil {
 		return err
 	}
-	return c.doRequest(bytes.NewBuffer(b), "POST")
+	return c.doRequest(bytes.NewBuffer(b), "POST", "")
 }
 
 // Client.CheckHealth is used to perform a healthcheck and return error if HEC endpoint is not healthy
 func (c *Client) CheckHealth() error {
 	// Convert requestBody struct to byte slice to prep for http.NewRequest
-	c.URL += "/health/1.0"
-	return c.doRequest(bytes.NewBufferString(""), "GET")
+	return c.doRequest(bytes.NewBufferString(""), "GET", "/health/1.0")
 }
 
 // Client.LogEvents is used to POST multiple events with a single request to the Splunk server.
@@ -152,7 +151,7 @@ func (c *Client) LogEvents(events []*Event) error {
 		buf.WriteString("\r\n\r\n")
 	}
 	// Convert requestBody struct to byte slice to prep for http.NewRequest
-	return c.doRequest(buf, "POST")
+	return c.doRequest(buf, "POST", "")
 }
 
 //Writer is a convience method for creating an io.Writer from a Writer with default values
@@ -163,9 +162,9 @@ func (c *Client) Writer() io.Writer {
 }
 
 // Client.doRequest is used internally to POST the bytes of events to the Splunk server.
-func (c *Client) doRequest(b *bytes.Buffer, reqType string) error {
+func (c *Client) doRequest(b *bytes.Buffer, reqType string, urlSuffix string) error {
 	// make new request
-	url := c.URL
+	url := c.URL + urlSuffix
 	req, err := http.NewRequest(reqType, url, b)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Splunk "+c.Token)
