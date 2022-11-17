@@ -154,7 +154,7 @@ func (c *Client) LogEvents(events []*Event) error {
 	return c.doRequest(buf, "POST", "")
 }
 
-//Writer is a convience method for creating an io.Writer from a Writer with default values
+// Writer is a convience method for creating an io.Writer from a Writer with default values
 func (c *Client) Writer() io.Writer {
 	return &Writer{
 		Client: c,
@@ -168,6 +168,7 @@ func (c *Client) doRequest(b *bytes.Buffer, reqType string, urlSuffix string) er
 	req, err := http.NewRequest(reqType, url, b)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Splunk "+c.Token)
+	req.Header.Add("X-Splunk-Request-Channel", "FE0ECFAD-13D5-401B-847D-77833BD77131")
 
 	// receive response
 	res, err := c.HTTPClient.Do(req)
