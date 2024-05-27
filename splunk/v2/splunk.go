@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -43,6 +42,7 @@ type Client struct {
 	URL        string
 	Hostname   string
 	Token      string
+	ChannelID  string //Default channel ID
 	Source     string //Default source
 	SourceType string //Default source type
 	Index      string //Default index
@@ -53,7 +53,7 @@ type Client struct {
 //
 // If an httpClient object is specified it will be used instead of the
 // default http.DefaultClient.
-func NewClient(httpClient *http.Client, URL string, Token string, Source string, SourceType string, Index string) *Client {
+func NewClient(httpClient *http.Client, URL, Token, ChannelID, Source, SourceType, Index string) *Client {
 	// Create a new client
 	if httpClient == nil {
 		tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: false}}
@@ -65,6 +65,7 @@ func NewClient(httpClient *http.Client, URL string, Token string, Source string,
 		URL:        URL,
 		Hostname:   hostname,
 		Token:      Token,
+		ChannelID:  ChannelID,
 		Source:     Source,
 		SourceType: SourceType,
 		Index:      Index,
@@ -168,7 +169,7 @@ func (c *Client) doRequest(b *bytes.Buffer, reqType string, urlSuffix string) er
 	req, err := http.NewRequest(reqType, url, b)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Splunk "+c.Token)
-	req.Header.Add("X-Splunk-Request-Channel", "FE0ECFAD-13D5-401B-847D-77833BD77131")
+	req.Header.Add("X-Splunk-Request-Channel", c.ChannelID)
 
 	// receive response
 	res, err := c.HTTPClient.Do(req)
@@ -183,10 +184,10 @@ func (c *Client) doRequest(b *bytes.Buffer, reqType string, urlSuffix string) er
 	switch res.StatusCode {
 	case 200:
 		// need to read the reply otherwise the connection hangs
-		io.Copy(ioutil.Discard, res.Body)
+		io.Copy(io.Discard, res.Body)
 		return nil
 	default:
-		respBody, err := ioutil.ReadAll(res.Body)
+		respBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
